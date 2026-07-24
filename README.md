@@ -17,7 +17,7 @@ filter will work.
 ## Authorship
 
 Unlike my other project,
-[sieve-filter-feedback-requests](https://github.com/openjck/sieve-filter-feedback-requests),
-this Sieve filter is not written by me. Rather, I asked an AI to write and
-maintain it, and I make only minor tweaks. So far, the only AI I've used is
+[sieve-email-filters](https://github.com/openjck/sieve-email-filters), these
+Sieve filters are not written by me. Rather, I use an AI to write and maintain
+them, and I make only minor tweaks. So far, the only AI I've used is
 [Claude](https://claude.ai/).
