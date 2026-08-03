@@ -27,6 +27,11 @@ set "folder" "Filtered out by AI";
 # appending one "x" per point, then measuring string
 # length. 1 point = 10 on a 0-100 scale.
 # Threshold: 10 normally, 13 if penalty signals appear.
+#
+# Apostrophe note: real subjects use straight (') and curly
+# (’) apostrophes interchangeably. Phrases containing an
+# apostrophe are written as :matches wildcards with "*" in
+# the apostrophe's place so both forms (and none) match.
 # ==========================================================
 
 # ---- Hard vetoes: never score these ----
@@ -77,13 +82,17 @@ set "neg" "";
 # ---- Positive signals: subject phrases ----
 
 # Near-certain tells. +10 = instant trigger.
-if header :contains "subject" [
-  "how did we do",
-  "how are we doing",
-  "how'd we do",
-  "tell us how we did",
-  "how likely are you to recommend"
-] {
+if anyof (
+  header :contains "subject" [
+    "how did we do",
+    "how are we doing",
+    "tell us how we did",
+    "how likely are you to recommend"
+  ],
+  header :matches "subject" [
+    "*how*d we do*"
+  ]
+) {
   set "tally" "${tally}xxxxxxxxxx";
 }
 
@@ -111,17 +120,21 @@ if header :contains "subject" [
 }
 
 # Strong. +7
-if header :contains "subject" [
-  "help us improve",
-  "your feedback matters",
-  "your opinion matters",
-  "your opinion counts",
-  "we'd love your feedback",
-  "we would love your feedback",
-  "we'd love to hear",
-  "we would love to hear",
-  "love to hear from you"
-] {
+if anyof (
+  header :contains "subject" [
+    "help us improve",
+    "your feedback matters",
+    "your opinion matters",
+    "your opinion counts",
+    "we would love your feedback",
+    "we would love to hear",
+    "love to hear from you"
+  ],
+  header :matches "subject" [
+    "*we*d love your feedback*",
+    "*we*d love to hear*"
+  ]
+) {
   set "tally" "${tally}xxxxxxx";
 }
 
@@ -145,6 +158,31 @@ if header :contains "subject" [
   "we value your",
   "share your",
   "hear from you"
+] {
+  set "tally" "${tally}xxxxx";
+}
+
+# Post-experience thank-yous: the classic opener for review
+# requests whose actual ask lives only in the body.
+# Deliberately excludes "thank you for your order/purchase"
+# (too transactional). +5
+if header :contains "subject" [
+  "thank you for joining",
+  "thanks for joining",
+  "thank you for visiting",
+  "thanks for visiting",
+  "thank you for attending",
+  "thanks for attending",
+  "thank you for coming",
+  "thanks for coming",
+  "thank you for dining",
+  "thanks for dining",
+  "thank you for staying",
+  "thanks for staying",
+  "thank you for stopping by",
+  "thanks for stopping by",
+  "thank you for your visit",
+  "thanks for your visit"
 ] {
   set "tally" "${tally}xxxxx";
 }
@@ -201,6 +239,14 @@ if header :contains "subject" [
   set "tally" "${tally}xx";
 }
 
+# "What's next" follow-up hook, common in post-visit review
+# asks. Wildcard covers straight/curly/missing apostrophes. +2
+if header :matches "subject" [
+  "*what*s next*"
+] {
+  set "tally" "${tally}xx";
+}
+
 # ---- Positive signals: sender ----
 
 # Entire local part advertises the purpose. +8
@@ -246,6 +292,20 @@ if address :domain :contains "from" [
   set "tally" "${tally}xxxxxxxx";
 }
 
+# Mixed-purpose booking/experience platforms: these relay
+# review asks AND legitimate booking confirmations from the
+# same address, so they get half the weight of the pure
+# review platforms above. A confirmation from one of these
+# (+4 domain, +2 noreply, +2 unsubscribe = 8) stays under
+# the threshold; a review-flavored subject pushes it over.
+# occsn.com = Occasion (venue booking, sends as the venue's
+# name from no-reply@occsn.com). +4
+if address :domain :contains "from" [
+  "occsn.com"
+] {
+  set "tally" "${tally}xxxx";
+}
+
 # Local part merely contains a purpose word (feedback-noreply@ etc.). +4
 if address :localpart :contains "from" [
   "feedback",
@@ -283,6 +343,8 @@ if header :contains "subject" [
   "order confirm",
   "shipping confirm",
   "your order has",
+  "booking confirm",
+  "is confirmed",
   "appointment",
   "reservation",
   "boarding pass",
