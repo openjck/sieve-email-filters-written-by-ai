@@ -36,21 +36,55 @@ set "folder" "Filtered out by AI";
 
 # ---- Hard vetoes: never score these ----
 
-# Genuine replies carry In-Reply-To. Bulk feedback mail never does.
-if exists "in-reply-to" {
+# Reply-shaped vetoes are guarded by a bulk-mail marker check:
+# survey platforms (Medallia, Zendesk CSAT) inject In-Reply-To /
+# References to thread their asks into real conversations, but
+# they also carry markers no human reply ever does. A message
+# with any bulk marker does not get the reply vetoes.
+
+# Genuine replies carry In-Reply-To and no bulk markers.
+if allof (
+  exists "in-reply-to",
+  not anyof (
+    exists "list-unsubscribe",
+    exists "feedback-id",
+    exists "x-feedback-id",
+    header :contains "auto-submitted" "auto-",
+    header :contains "precedence" [
+      "bulk",
+      "list",
+      "junk"
+    ]
+  )
+) {
   return;
 }
 
 # Reply/forward subject prefixes. :matches anchors to the whole
-# subject, so a mid-subject "re:" cannot trigger this.
-if header :matches "subject" [
-  "re:*",
-  "re :*",
-  "fw:*",
-  "fw :*",
-  "fwd:*",
-  "fwd :*"
-] {
+# subject, so a mid-subject "re:" cannot trigger this. Same
+# bulk-marker guard: marketers fake "Re:" prefixes, humans
+# forwarding mail carry no bulk markers.
+if allof (
+  header :matches "subject" [
+    "re:*",
+    "re :*",
+    "fw:*",
+    "fw :*",
+    "fwd:*",
+    "fwd :*"
+  ],
+  not anyof (
+    exists "list-unsubscribe",
+    exists "feedback-id",
+    exists "x-feedback-id",
+    header :contains "auto-submitted" "auto-",
+    header :contains "precedence" [
+      "bulk",
+      "list",
+      "junk"
+    ]
+  )
+) {
   return;
 }
 
@@ -82,12 +116,16 @@ set "neg" "";
 # ---- Positive signals: subject phrases ----
 
 # Near-certain tells. +10 = instant trigger.
+# "would you rate" covers "How would you rate the support you
+# received?" (stock Zendesk CSAT subject) and every "how/where
+# would you rate X" variant regardless of what X is.
 if anyof (
   header :contains "subject" [
     "how did we do",
     "how are we doing",
     "tell us how we did",
-    "how likely are you to recommend"
+    "how likely are you to recommend",
+    "would you rate"
   ],
   header :matches "subject" [
     "*how*d we do*"
@@ -101,6 +139,8 @@ if header :contains "subject" [
   "rate your",
   "rate us",
   "rate our",
+  "please rate",
+  "how satisfied",
   "leave a review",
   "leave us a review",
   "write a review",
@@ -128,7 +168,9 @@ if anyof (
     "your opinion counts",
     "we would love your feedback",
     "we would love to hear",
-    "love to hear from you"
+    "love to hear from you",
+    "was your issue resolved",
+    "did we resolve"
   ],
   header :matches "subject" [
     "*we*d love your feedback*",
