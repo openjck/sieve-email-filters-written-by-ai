@@ -153,6 +153,9 @@ if header :contains "subject" [
   "review your recent",
   "how was your",
   "share your feedback",
+  "share your thoughts",
+  "share your experience",
+  "share your opinion",
   "give us your feedback",
   "your feedback is important"
 ] {
@@ -309,28 +312,67 @@ if address :localpart :is "from" [
 }
 
 # Survey and review platforms. +8
-if address :domain :contains "from" [
-  "qualtrics",
-  "medallia",
-  "surveymonkey",
-  "momentive",
-  "delighted",
-  "trustpilot",
-  "bazaarvoice",
-  "getfeedback",
-  "asknicely",
-  "typeform",
-  "alchemer",
-  "surveygizmo",
-  "birdeye",
-  "podium",
-  "yotpo",
-  "feefo",
-  "reviews.io",
-  "judge.me",
-  "stamped.io",
-  "okendo"
-] {
+# Many of these (Judge.me, Yotpo, Okendo, Stamped, Trustpilot
+# invitations) send as the merchant's own address, so the
+# From domain alone misses them. Their fingerprints survive in
+# the List-Unsubscribe URL, Message-ID, Sender, and Return-Path,
+# which point back at the platform (Judge.me's Message-IDs
+# look like <...@judgeme-worker-ecs.mail>, hence "judgeme-").
+# Those headers are matched on full domain names only: bare
+# words like "podium" or "delighted" could turn up in an
+# unrelated URL or ID.
+if anyof (
+  header :contains [
+    "list-unsubscribe",
+    "message-id",
+    "sender",
+    "return-path"
+  ] [
+    "qualtrics.com",
+    "medallia.com",
+    "surveymonkey.com",
+    "momentive.ai",
+    "delighted.com",
+    "trustpilot.com",
+    "bazaarvoice.com",
+    "getfeedback.com",
+    "asknicely.com",
+    "typeform.com",
+    "alchemer.com",
+    "surveygizmo.com",
+    "birdeye.com",
+    "podium.com",
+    "yotpo.com",
+    "feefo.com",
+    "reviews.io",
+    "judge.me",
+    "judgeme-",
+    "stamped.io",
+    "okendo.io"
+  ],
+  address :domain :contains "from" [
+    "qualtrics",
+    "medallia",
+    "surveymonkey",
+    "momentive",
+    "delighted",
+    "trustpilot",
+    "bazaarvoice",
+    "getfeedback",
+    "asknicely",
+    "typeform",
+    "alchemer",
+    "surveygizmo",
+    "birdeye",
+    "podium",
+    "yotpo",
+    "feefo",
+    "reviews.io",
+    "judge.me",
+    "stamped.io",
+    "okendo"
+  ]
+) {
   set "tally" "${tally}xxxxxxxx";
 }
 
