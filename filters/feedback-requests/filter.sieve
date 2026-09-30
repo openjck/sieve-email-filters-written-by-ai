@@ -183,6 +183,22 @@ if anyof (
   set "tally" "${tally}xxxxxxx";
 }
 
+# Backward-looking references to a finished support contact.
+# Help-desk CSAT asks (often sent by Zendesk-style platforms
+# with a faked "Re:" prefix and threading headers) commonly
+# use subjects like "Re: Your recent support request" and
+# carry the actual rating ask only in the body. Real ticket
+# replies are titled after the customer's own subject, and
+# acknowledgements say "your support request", not "recent".
+# Combined with "your recent" (+2 below) this reaches the
+# threshold on its own. +8
+if header :contains "subject" [
+  "recent support",
+  "recent interaction"
+] {
+  set "tally" "${tally}xxxxxxxx";
+}
+
 # Solid single keywords. +6
 if header :contains "subject" [
   "feedback",
