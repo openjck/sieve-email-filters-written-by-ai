@@ -202,12 +202,27 @@ if header :contains "subject" [
 # Solid single keywords. +6
 if header :contains "subject" [
   "feedback",
-  "survey",
   "questionnaire",
   "satisfaction",
   "your opinion",
   "your input"
 ] {
+  set "tally" "${tally}xxxxxx";
+}
+
+# "survey" gets its own block so that land-surveying language
+# ("Surveying", "Surveyor") doesn't count as a survey ask. A
+# plain :contains would match those, and a word-boundary
+# approach (like "review" below) would miss punctuation cases
+# such as "Survey:" or "[Survey]", so the surveying words are
+# excluded instead. +6
+if allof (
+  header :contains "subject" "survey",
+  not header :contains "subject" [
+    "surveying",
+    "surveyor"
+  ]
+) {
   set "tally" "${tally}xxxxxx";
 }
 
@@ -449,7 +464,15 @@ if header :contains "subject" [
   "reservation",
   "boarding pass",
   "itinerary",
-  "renewal"
+  "renewal",
+  "job alert",
+  "jobs in",
+  "jobs near",
+  "jobs for you",
+  "more jobs",
+  "new jobs",
+  "is hiring",
+  "now hiring"
 ] {
   set "neg" "${neg}xxx";
 }
