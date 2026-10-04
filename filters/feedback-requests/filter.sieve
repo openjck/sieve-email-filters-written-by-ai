@@ -88,8 +88,24 @@ if allof (
   return;
 }
 
-# Mail from anyone in your Proton contacts is never scored.
-if header :list "from" ":addrbook:personal" {
+# Mail from anyone in your Proton contacts is never scored,
+# unless the message itself says no human wrote it. Proton
+# saves contacts automatically when you reply to someone, so
+# replying to a help desk puts the help desk's address in
+# your contacts. Its later satisfaction surveys are machine-
+# generated (Zendesk sends "Auto-Submitted: auto-generated")
+# and should still be scored. Personal mail never carries
+# these markers. List-Unsubscribe and Precedence are not used
+# here, since a contact's newsletter or mailing-list post may
+# carry them and still deserve protection.
+if allof (
+  header :list "from" ":addrbook:personal",
+  not anyof (
+    header :contains "auto-submitted" "auto-",
+    exists "feedback-id",
+    exists "x-feedback-id"
+  )
+) {
   return;
 }
 
