@@ -178,6 +178,23 @@ if header :contains "subject" [
   set "tally" "${tally}xxxxxxxx";
 }
 
+# Past-tense questions about something the recipient already
+# experienced (a movie, meal, event, purchase, stay). These
+# open a post-experience rating ask whose actual survey link
+# lives only in the body. Present tense ("how do you like")
+# is left out: marketing uses it for preference questions
+# ("How do you like your coffee?") that aren't feedback asks.
+# Mail from contacts is vetoed above, so a friend asking
+# "how did it go?" is not scored. +8
+if header :contains "subject" [
+  "did you like",
+  "did you enjoy",
+  "what did you think",
+  "how did it go"
+] {
+  set "tally" "${tally}xxxxxxxx";
+}
+
 # Strong. +7
 if anyof (
   header :contains "subject" [
