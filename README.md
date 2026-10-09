@@ -17,9 +17,9 @@ folder automatically.
 
 The following Sieve email filters are provided by this project:
 
-| Filter                                                        | Description                                                                                 |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| [Feedback requests](./filters/feedback-requests/filter.sieve) | Filters out emails which request feedback: "rate your trip," "tell us what you think," etc. |
+| Filter                                                           | Description                                                                                 |
+| -------------------------------------------------------------    | ------------------------------------------------------------------------------------------- |
+| [Feedback requests](./filters/feedback-requests/ai-filter.sieve) | Filters out emails which request feedback: "rate your trip," "tell us what you think," etc. |
 
 ## False positives and false negatives
 
